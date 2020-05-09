@@ -1,3 +1,3 @@
 # AI-Project
 
-hello 
+hello, it's me !
