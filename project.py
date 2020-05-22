@@ -2,6 +2,7 @@ from moteur_id3.id3 import ID3
 from csv import DictReader
 import pandas as pd
 
+
 class ResultValues:
 
     def __init__(self):
@@ -26,7 +27,7 @@ class ResultValues:
         print('accuracy is :', format(task2_accuracy, '.2%'))
 
         # Task 3
-        
+
         def initial_facts(dataframe):
             with open(dataframe, 'r') as read_obj:
                 # pass the file object to DictReader() to get the DictReader object
@@ -34,13 +35,12 @@ class ResultValues:
                 # iterate over each line as a ordered dictionary
                 data = []
                 for row in csv_dict_reader:
-                # row variable is a dictionary that represents a row in csv
-                # defining the sex of the person
+                    # row variable is a dictionary that represents a row in csv
+                    # defining the sex of the person
                     if row['sex'] == '1':
                         row['sex'] = 'male'
                     else:
                         row['sex'] = 'female'
-
 
                     # define the chest pain type
 
@@ -53,16 +53,14 @@ class ResultValues:
                     else:
                         row['cp'] = 'asymptomatic'
 
-
-                    #defining whether fasting blood sugar is greater than 120 mg/dl
+                    # defining whether fasting blood sugar is greater than 120 mg/dl
 
                     if row['fbs'] == '1':
                         row['fbs'] = 'true'
                     else:
                         row['fbs'] = 'false'
 
-
-                    #defining resting electrocardiographic results
+                    # defining resting electrocardiographic results
 
                     if row['restecg'] == '0':
                         row['restecg'] = 'normal'
@@ -71,16 +69,14 @@ class ResultValues:
                     else:
                         row['restecg'] = "shows probable or definite left ventricular hypertrophy by Estes' criteria"
 
-
-                    #defining whether a person has exercise induced angina
+                    # defining whether a person has exercise induced angina
 
                     if row['exang'] == '1':
                         row['exang'] = 'true'
                     else:
                         row['exang'] = 'false'
 
-
-                    #defining slope of the peak exercise ST segment
+                    # defining slope of the peak exercise ST segment
 
                     if row['slope'] == '0':
                         row['slope'] = 'unsloping'
@@ -89,8 +85,7 @@ class ResultValues:
                     else:
                         row['slope'] = 'downsloping'
 
-
-                    #defining thal
+                    # defining thal
 
                     if row['thal'] == '0':
                         row['thal'] = 'missing'
@@ -101,29 +96,28 @@ class ResultValues:
                     else:
                         row['thal'] = 'reversable defect'
 
-
-                    #defining whether the person has heart disease
+                    # defining whether the person has heart disease
 
                     if row['target'] == '0':
                         row['target'] = 'no heart disease'
                     else:
-                        row['target'] = 'heart disease' 
+                        row['target'] = 'heart disease'
 
                     data.append(row)
-            
-            return data
 
+            return data
 
         self.faits_initiaux = initial_facts('data/train_bin.csv')
         print(self.arbre)
 
-        self.regles = None 
+        self.regles = None
 
         # Task 5
         self.arbre_advance = None
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
+
 
 # Static functions
 def parse_data(dataframe):
@@ -156,6 +150,7 @@ def min_depth(t):
             children_depth.append(min_depth(children[e]))
         return min(children_depth) + 1
 
+
 def get_leaf_count(t):
     """ Parse dataframe into desired format.
         :param NoeudDeDecision t: the tree to analyze
@@ -170,6 +165,7 @@ def get_leaf_count(t):
             children_leaves.append(get_leaf_count(children[e]))
         return sum(children_leaves)
 
+
 def max_depth(t):
     """ Parse dataframe into desired format.
         :param NoeudDeDecision t: the tree to analyze
@@ -182,7 +178,8 @@ def max_depth(t):
         children_depth = []
         for e in children:
             children_depth.append(max_depth(children[e]))
-        return max(children_depth)+1
+        return max(children_depth) + 1
+
 
 def test_stats(tree, data):
     """ Test the tree on a test dataset.
@@ -195,4 +192,4 @@ def test_stats(tree, data):
         if tree.classifie(inp)[-1] == target:
             success += 1
 
-    return success/len(data)
+    return success / len(data)
