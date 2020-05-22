@@ -28,96 +28,25 @@ class ResultValues:
         # Task 3
         
         def initial_facts(dataframe):
-            with open(dataframe, 'r') as read_obj:
+            with open(dataframe, 'r', encoding='utf-8-sig') as read_obj:
                 # pass the file object to DictReader() to get the DictReader object
                 csv_dict_reader = DictReader(read_obj)
-                # iterate over each line as a ordered dictionary
                 data = []
+                # iterate over each line as a ordered dictionary
                 for row in csv_dict_reader:
                 # row variable is a dictionary that represents a row in csv
-                # defining the sex of the person
-                    if row['sex'] == '1':
-                        row['sex'] = 'male'
-                    else:
-                        row['sex'] = 'female'
-
-
-                    # define the chest pain type
-
-                    if row['cp'] == '0':
-                        row['cp'] = 'typical angina'
-                    elif row['cp'] == '1':
-                        row['cp'] = 'atypical angina'
-                    elif row['cp'] == '2':
-                        row['cp'] = 'non-anginal pain'
-                    else:
-                        row['cp'] = 'asymptomatic'
-
-
-                    #defining whether fasting blood sugar is greater than 120 mg/dl
-
-                    if row['fbs'] == '1':
-                        row['fbs'] = 'true'
-                    else:
-                        row['fbs'] = 'false'
-
-
-                    #defining resting electrocardiographic results
-
-                    if row['restecg'] == '0':
-                        row['restecg'] = 'normal'
-                    elif row['restecg'] == '1':
-                        row['restecg'] = 'has ST-T wave abnormality'
-                    else:
-                        row['restecg'] = "shows probable or definite left ventricular hypertrophy by Estes' criteria"
-
-
-                    #defining whether a person has exercise induced angina
-
-                    if row['exang'] == '1':
-                        row['exang'] = 'true'
-                    else:
-                        row['exang'] = 'false'
-
-
-                    #defining slope of the peak exercise ST segment
-
-                    if row['slope'] == '0':
-                        row['slope'] = 'unsloping'
-                    elif row['slope'] == '1':
-                        row['slope'] = 'flat'
-                    else:
-                        row['slope'] = 'downsloping'
-
-
-                    #defining thal
-
-                    if row['thal'] == '0':
-                        row['thal'] = 'missing'
-                    elif row['thal'] == '1':
-                        row['thal'] = 'normal'
-                    elif row['thal'] == '2':
-                        row['thal'] = 'fixed defect'
-                    else:
-                        row['thal'] = 'reversable defect'
-
-
-                    #defining whether the person has heart disease
-
-                    if row['target'] == '0':
-                        row['target'] = 'no heart disease'
-                    else:
-                        row['target'] = 'heart disease' 
-
-                    data.append(row)
+                    data.append(list(row.items()))
             
             return data
 
 
         self.faits_initiaux = initial_facts('data/train_bin.csv')
-        print(self.arbre)
-
         self.regles = None 
+
+
+        #Task 4
+
+        
 
         # Task 5
         self.arbre_advance = None
@@ -196,3 +125,5 @@ def test_stats(tree, data):
             success += 1
 
     return success/len(data)
+
+ResultValues()
