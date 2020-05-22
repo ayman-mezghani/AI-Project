@@ -28,16 +28,9 @@ class ResultValues:
 
         # Task 3
 
-
-
         self.faits_initiaux = initial_facts('data/train_bin.csv')
 
-        # print(self.arbre)
-
-        path_list = get_paths(self.arbre)
-
-        print(len(path_list))
-        self.regles = path_list
+        self.regles = get_paths(self.arbre)
 
         # Task 4
 
@@ -129,8 +122,13 @@ def test_stats(tree, data):
     return success / len(data)
 
 
-def initial_facts(dataframe):
-    with open(dataframe, 'r', encoding='utf-8-sig') as read_obj:
+def initial_facts(path):
+    """ Retrieve initial facts from a csv file.
+
+        :param str path: file path
+        :return: finitial facts
+    """
+    with open(path, 'r', encoding='utf-8-sig') as read_obj:
         # pass the file object to DictReader() to get the DictReader object
         csv_dict_reader = DictReader(read_obj)
         data = []
@@ -162,6 +160,10 @@ def explain_prediction(rules, datapoint):
 
         :param list rules: the list of rules
         :param list datapoint: the datapoint attributes
-        :return: list attributes that explain the prediction
+        :return: the explanation of the prediction
     """
+    for rule in rules:
+        if all(i in datapoint for i in rule[:-1]):
+            return print(rule[:-1], "=>", rule[-1])
 
+    return "No explanation found. Ask a real doctor"
