@@ -1,4 +1,4 @@
-from moteur_id3.id3 import ID3
+from moteur_id3.id3 import ID3, NoeudDeDecision
 from csv import DictReader
 import pandas as pd
 
@@ -108,9 +108,13 @@ class ResultValues:
             return data
 
         self.faits_initiaux = initial_facts('data/train_bin.csv')
-        print(self.arbre)
 
-        self.regles = None
+        # print(self.arbre)
+
+        path_list = get_paths(self.arbre)
+
+        print(len(path_list))
+        self.regles = path_list
 
         # Task 5
         self.arbre_advance = None
@@ -122,6 +126,7 @@ class ResultValues:
 # Static functions
 def parse_data(dataframe):
     """ Parse dataframe into desired format.
+
        :param DataFrame dataframe: the dataframe to parse
        :return: a list of pairs
     """
@@ -138,6 +143,7 @@ def parse_data(dataframe):
 
 def min_depth(t):
     """ Parse dataframe into desired format.
+
         :param NoeudDeDecision t: the tree to analyze
         :return: min height of the tree
     """
@@ -153,6 +159,7 @@ def min_depth(t):
 
 def get_leaf_count(t):
     """ Parse dataframe into desired format.
+
         :param NoeudDeDecision t: the tree to analyze
         :return: number of leaves
     """
@@ -168,6 +175,7 @@ def get_leaf_count(t):
 
 def max_depth(t):
     """ Parse dataframe into desired format.
+
         :param NoeudDeDecision t: the tree to analyze
         :return: max height of the tree
     """
@@ -183,6 +191,7 @@ def max_depth(t):
 
 def test_stats(tree, data):
     """ Test the tree on a test dataset.
+
         :param NoeudDeDecision tree: the tree to test
         :param list data: test data
         :return: accuracy of the classifications
@@ -193,3 +202,19 @@ def test_stats(tree, data):
             success += 1
 
     return success / len(data)
+
+def get_paths(t):
+    """ Get all the paths in a tree using DFS.
+
+        :param NoeudDeDecision t: the tree to explore
+        :return: list of paths in the tree
+    """
+    if t.terminal():
+        return [[t.classe().upper()]]
+    paths = []
+    children = t.enfants
+    for value, child in children.items():
+        res_p = get_paths(child)
+        for path in res_p:
+            paths.append([[t.attribut, value]] + path)
+    return paths
