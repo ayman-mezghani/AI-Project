@@ -1,6 +1,7 @@
-from moteur_id3.id3 import ID3
+from moteur_id3.id3 import ID3, NoeudDeDecision
 from csv import DictReader
 import pandas as pd
+
 
 class ResultValues:
 
@@ -26,27 +27,12 @@ class ResultValues:
         print('accuracy is :', format(task2_accuracy, '.2%'))
 
         # Task 3
-        
-        def initial_facts(dataframe):
-            with open(dataframe, 'r', encoding='utf-8-sig') as read_obj:
-                # pass the file object to DictReader() to get the DictReader object
-                csv_dict_reader = DictReader(read_obj)
-                data = []
-                # iterate over each line as a ordered dictionary
-                for row in csv_dict_reader:
-                # row variable is a dictionary that represents a row in csv
-                    data.append(list(row.items()))
-            
-            return data
-
 
         self.faits_initiaux = initial_facts('data/train_bin.csv')
-        self.regles = None 
 
+        self.regles = get_paths(self.arbre)
 
-        #Task 4
-
-        
+        # Task 4
 
         # Task 5
         self.arbre_advance = None
@@ -54,9 +40,11 @@ class ResultValues:
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
 
+
 # Static functions
 def parse_data(dataframe):
     """ Parse dataframe into desired format.
+
        :param DataFrame dataframe: the dataframe to parse
        :return: a list of pairs
     """
@@ -73,6 +61,7 @@ def parse_data(dataframe):
 
 def min_depth(t):
     """ Parse dataframe into desired format.
+
         :param NoeudDeDecision t: the tree to analyze
         :return: min height of the tree
     """
@@ -85,8 +74,10 @@ def min_depth(t):
             children_depth.append(min_depth(children[e]))
         return min(children_depth) + 1
 
+
 def get_leaf_count(t):
     """ Parse dataframe into desired format.
+
         :param NoeudDeDecision t: the tree to analyze
         :return: number of leaves
     """
@@ -99,8 +90,10 @@ def get_leaf_count(t):
             children_leaves.append(get_leaf_count(children[e]))
         return sum(children_leaves)
 
+
 def max_depth(t):
     """ Parse dataframe into desired format.
+
         :param NoeudDeDecision t: the tree to analyze
         :return: max height of the tree
     """
@@ -111,10 +104,12 @@ def max_depth(t):
         children_depth = []
         for e in children:
             children_depth.append(max_depth(children[e]))
-        return max(children_depth)+1
+        return max(children_depth) + 1
+
 
 def test_stats(tree, data):
     """ Test the tree on a test dataset.
+
         :param NoeudDeDecision tree: the tree to test
         :param list data: test data
         :return: accuracy of the classifications
@@ -124,6 +119,51 @@ def test_stats(tree, data):
         if tree.classifie(inp)[-1] == target:
             success += 1
 
-    return success/len(data)
+    return success / len(data)
 
-ResultValues()
+
+def initial_facts(path):
+    """ Retrieve initial facts from a csv file.
+
+        :param str path: file path
+        :return: finitial facts
+    """
+    with open(path, 'r', encoding='utf-8-sig') as read_obj:
+        # pass the file object to DictReader() to get the DictReader object
+        csv_dict_reader = DictReader(read_obj)
+        data = []
+        # iterate over each line as a ordered dictionary
+        for row in csv_dict_reader:
+            # row variable is a dictionary that represents a row in csv
+            data.append(list(list(e) for e in row.items()))
+
+    return data
+
+def get_paths(t):
+    """ Get all the paths in a tree using DFS.
+
+        :param NoeudDeDecision t: the tree to explore
+        :return: list of paths in the tree
+    """
+    if t.terminal():
+        return [[t.classe().upper()]]
+    paths = []
+    children = t.enfants
+    for value, child in children.items():
+        res_p = get_paths(child)
+        for path in res_p:
+            paths.append([[t.attribut, value]] + path)
+    return paths
+
+def explain_prediction(rules, datapoint):
+    """ get prediction explanation for the datapoind based on the rules.
+
+        :param list rules: the list of rules
+        :param list datapoint: the datapoint attributes
+        :return: the explanation of the prediction
+    """
+    for rule in rules:
+        if all(i in datapoint for i in rule[:-1]):
+            return print(rule[:-1], "=>", rule[-1])
+
+    return "No explanation found. Ask a real doctor"
