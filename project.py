@@ -17,7 +17,6 @@ class ResultValues:
 
         self.arbre = tree
 
-
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('number of leaves in the tree:', get_leaf_count(tree))
@@ -36,14 +35,16 @@ class ResultValues:
 
         # Task 4
 
-        def tree_predict(tree, data):
+        def tree_predict(t, data):
 
             pred_heart_disease = []
-            for inp in data:
-                if tree.classifie(inp)[-1] == '1':
+            for target, inp in data:
+                if t.classifie(inp)[-1] == '1':
                     pred_heart_disease.append(inp)
 
-            return(pred)
+            return pred_heart_disease
+
+        print(tree_predict(self.arbre, task2_test_data))
 
         # Task 5
         self.arbre_advance = None
@@ -139,6 +140,7 @@ def test_stats(tree, data):
         :param list data: test data
         :return: accuracy of the classifications
     """
+    print(data)
     success = 0
     for target, inp in data:
         if tree.classifie(inp)[-1] == target:
