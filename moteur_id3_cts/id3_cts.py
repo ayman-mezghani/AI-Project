@@ -1,7 +1,7 @@
 from math import log
 from .noeud_de_decision_cts import NoeudDeDecision_cts
 
-class ID3:
+class ID3Cts:
     """ Algorithme ID3. 
 
         This is an updated version from the one in the book (Intelligence Artificielle par la pratique).

@@ -1,14 +1,18 @@
-from moteur_id3.id3 import ID3, NoeudDeDecision
+from moteur_id3.id3 import ID3
+from moteur_id3.noeud_de_decision import NoeudDeDecision
+from moteur_id3_cts.id3_cts import ID3Cts
+from moteur_id3_cts.noeud_de_decision_cts import NoeudDeDecisionCts
 from csv import DictReader
 import pandas as pd
-import numpy as np
 
 
 class ResultValues:
 
     def __init__(self):
         # Do computations here
+        
         # Task 1
+
         df = pd.read_csv('data/train_bin.csv')
         task1_train_data = parse_data(df)
 
@@ -47,7 +51,27 @@ class ResultValues:
         print(tree_predict(self.arbre, task2_test_data))
 
         # Task 5
-        self.arbre_advance = None
+
+        # Training
+        df = pd.read_csv('data/train_continuous.csv')
+        task5_train_data = parse_data(df)
+
+        id3_cts = ID3Cts()
+        tree_advance = id3_cts.construit_arbre(task5_train_data)
+
+        self.arbre_advance = tree_advance
+
+        # Stats
+        print('max height of the tree:', max_depth(self.arbre_advance))
+        print('min height of the tree:', min_depth(self.arbre_advance))
+        print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
+        print('average height of the tree:', average_height(self.arbre_advance))
+
+        # Testing
+        df = pd.read_csv('data/test_public_continuous.csv')
+        task5_test_data = parse_data(df)
+        task5_accuracy = test_stats(self.arbre_advance, task5_test_data)
+        print('accuracy is :', format(task5_accuracy, '.2%'))
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
@@ -118,6 +142,7 @@ def max_depth(t):
             children_depth.append(max_depth(children[e]))
         return max(children_depth) + 1
 
+
 def average_height(t):
     """ Find the average height of a decision tree
 
@@ -129,7 +154,7 @@ def average_height(t):
     for path in paths:
         lengths.append(len(path))
 
-    ah = sum(lengths)/len(paths)
+    ah = sum(lengths) / len(paths)
 
     return ah
 
@@ -167,6 +192,7 @@ def initial_facts(path):
 
     return data
 
+
 def get_paths(t):
     """ Get all the paths in a tree using DFS.
 
@@ -182,6 +208,7 @@ def get_paths(t):
         for path in res_p:
             paths.append([[t.attribut, value]] + path)
     return paths
+
 
 def explain_prediction(rules, datapoint):
     """ get prediction explanation for the datapoind based on the rules.
