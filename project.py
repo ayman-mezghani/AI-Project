@@ -17,11 +17,10 @@ class ResultValues:
 
         self.arbre = tree
 
-
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('number of leaves in the tree:', get_leaf_count(tree))
-        print('average height of the tree:', int(average_height(get_paths(self.arbre))))
+        print('average height of the tree:', average_height(self.arbre))
 
         # Task 2
         df = pd.read_csv('data/test_public_bin.csv')
@@ -36,14 +35,16 @@ class ResultValues:
 
         # Task 4
 
-        def tree_predict(tree, data):
+        def tree_predict(t, data):
 
             pred_heart_disease = []
-            for inp in data:
-                if tree.classifie(inp)[-1] == '1':
+            for target, inp in data:
+                if t.classifie(inp)[-1] == '1':
                     pred_heart_disease.append(inp)
 
-            return(pred)
+            return pred_heart_disease
+
+        print(tree_predict(self.arbre, task2_test_data))
 
         # Task 5
         self.arbre_advance = None
@@ -117,19 +118,20 @@ def max_depth(t):
             children_depth.append(max_depth(children[e]))
         return max(children_depth) + 1
 
-def average_height(paths):
-    """ Find the average height of paths from a decision tree
+def average_height(t):
+    """ Find the average height of a decision tree
 
-        :param list paths: list of paths from a tree
-        :return: average path length to give average height of tree
+        :param NoeudDeDecision t: the tree
+        :return: average height of the tree
     """
+    paths = get_paths(t)
     lengths = []
-    for path in range(len(paths)):
-        lengths.append(len(paths[path]))
+    for path in paths:
+        lengths.append(len(path))
 
-    average_height = np.rint(sum(lengths)/len(paths))
+    ah = sum(lengths)/len(paths)
 
-    return average_height
+    return ah
 
 
 def test_stats(tree, data):
@@ -139,6 +141,7 @@ def test_stats(tree, data):
         :param list data: test data
         :return: accuracy of the classifications
     """
+    print(data)
     success = 0
     for target, inp in data:
         if tree.classifie(inp)[-1] == target:
