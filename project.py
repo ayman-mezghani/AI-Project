@@ -1,16 +1,17 @@
+from csv import DictReader
+
+import pandas as pd
+
 from moteur_id3.id3 import ID3
 from moteur_id3.noeud_de_decision import NoeudDeDecision
 from moteur_id3_cts.id3_cts import ID3Cts
-from moteur_id3_cts.noeud_de_decision_cts import NoeudDeDecisionCts
-from csv import DictReader
-import pandas as pd
 
 
 class ResultValues:
 
     def __init__(self):
         # Do computations here
-        
+
         # Task 1
 
         df = pd.read_csv('data/train_bin.csv')

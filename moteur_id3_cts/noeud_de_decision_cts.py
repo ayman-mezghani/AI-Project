@@ -1,4 +1,6 @@
-class NoeudDeDecisionCts:
+from moteur_id3.noeud_de_decision import NoeudDeDecision
+
+class NoeudDeDecisionCts(NoeudDeDecision):
     """ Un noeud dans un arbre de décision. 
     
         This is an updated version from the one in the book (Intelligence Artificielle par la pratique).
