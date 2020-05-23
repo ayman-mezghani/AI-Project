@@ -1,6 +1,7 @@
 from moteur_id3.id3 import ID3, NoeudDeDecision
 from csv import DictReader
 import pandas as pd
+import numpy as np
 
 
 class ResultValues:
@@ -14,11 +15,13 @@ class ResultValues:
         id3 = ID3()
         tree = id3.construit_arbre(task1_train_data)
 
+        self.arbre = tree
+
+
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('number of leaves in the tree:', get_leaf_count(tree))
-
-        self.arbre = tree
+        print('average height of the tree:', int(average_height(get_paths(self.arbre))))
 
         # Task 2
         df = pd.read_csv('data/test_public_bin.csv')
@@ -29,10 +32,18 @@ class ResultValues:
         # Task 3
 
         self.faits_initiaux = initial_facts('data/train_bin.csv')
-
         self.regles = get_paths(self.arbre)
 
         # Task 4
+
+        def tree_predict(tree, data):
+
+            pred_heart_disease = []
+            for inp in data:
+                if tree.classifie(inp)[-1] == '1':
+                    pred_heart_disease.append(inp)
+
+            return(pred)
 
         # Task 5
         self.arbre_advance = None
@@ -106,6 +117,20 @@ def max_depth(t):
             children_depth.append(max_depth(children[e]))
         return max(children_depth) + 1
 
+def average_height(paths):
+    """ Find the average height of paths from a decision tree
+
+        :param list paths: list of paths from a tree
+        :return: average path length to give average height of tree
+    """
+    lengths = []
+    for path in range(len(paths)):
+        lengths.append(len(paths[path]))
+
+    average_height = np.rint(sum(lengths)/len(paths))
+
+    return average_height
+
 
 def test_stats(tree, data):
     """ Test the tree on a test dataset.
@@ -126,7 +151,7 @@ def initial_facts(path):
     """ Retrieve initial facts from a csv file.
 
         :param str path: file path
-        :return: finitial facts
+        :return: initial facts
     """
     with open(path, 'r', encoding='utf-8-sig') as read_obj:
         # pass the file object to DictReader() to get the DictReader object
