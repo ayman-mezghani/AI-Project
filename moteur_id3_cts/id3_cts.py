@@ -1,5 +1,5 @@
 from math import log
-from .noeud_de_decision_cts import NoeudDeDecision
+from .noeud_de_decision_cts import NoeudDeDecision_cts
 
 class ID3:
     """ Algorithme ID3. 
@@ -70,12 +70,12 @@ class ID3:
             return True
 
         if donnees == []:
-            return NoeudDeDecision(None, [str(predominant_class), dict()], str(predominant_class))
+            return NoeudDeDecision_cts(None, [str(predominant_class), dict()], str(predominant_class))
 
         # Si toutes les données restantes font partie de la même classe,
         # on peut retourner un noeud terminal.         
         elif classe_unique(donnees):
-            return NoeudDeDecision(None, donnees, str(predominant_class))
+            return NoeudDeDecision_cts(None, donnees, str(predominant_class))
             
         else:
             # Sélectionne l'attribut qui réduit au maximum l'entropie.
@@ -96,7 +96,7 @@ class ID3:
                                                              attributs_restants,
                                                              predominant_class)
 
-            return NoeudDeDecision(attribut, donnees, str(predominant_class), enfants)
+            return NoeudDeDecision_cts(attribut, donnees, str(predominant_class), enfants)
 
     def partitionne(self, donnees, attribut, valeurs):
         """ Partitionne les données sur les valeurs a_j de l'attribut A.

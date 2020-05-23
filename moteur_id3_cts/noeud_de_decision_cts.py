@@ -1,4 +1,4 @@
-class NoeudDeDecision:
+class NoeudDeDecision_cts:
     """ Un noeud dans un arbre de décision. 
     
         This is an updated version from the one in the book (Intelligence Artificielle par la pratique).
