@@ -20,7 +20,7 @@ class ResultValues:
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('number of leaves in the tree:', get_leaf_count(tree))
-        print('average height of the tree:', int(average_height(get_paths(self.arbre))))
+        print('average height of the tree:', average_height(self.arbre))
 
         # Task 2
         df = pd.read_csv('data/test_public_bin.csv')
@@ -118,19 +118,20 @@ def max_depth(t):
             children_depth.append(max_depth(children[e]))
         return max(children_depth) + 1
 
-def average_height(paths):
-    """ Find the average height of paths from a decision tree
+def average_height(t):
+    """ Find the average height of a decision tree
 
-        :param list paths: list of paths from a tree
-        :return: average path length to give average height of tree
+        :param NoeudDeDecision t: the tree
+        :return: average height of the tree
     """
+    paths = get_paths(t)
     lengths = []
-    for path in range(len(paths)):
-        lengths.append(len(paths[path]))
+    for path in paths:
+        lengths.append(len(path))
 
-    average_height = np.rint(sum(lengths)/len(paths))
+    ah = sum(lengths)/len(paths)
 
-    return average_height
+    return ah
 
 
 def test_stats(tree, data):
