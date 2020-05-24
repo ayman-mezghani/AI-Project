@@ -1,13 +1,19 @@
-from moteur_id3.id3 import ID3, NoeudDeDecision
 from csv import DictReader
+
 import pandas as pd
+
+from moteur_id3.id3 import ID3
+from moteur_id3.noeud_de_decision import NoeudDeDecision
+from moteur_id3_cts.id3_cts import ID3Cts
 
 
 class ResultValues:
 
     def __init__(self):
         # Do computations here
+
         # Task 1
+
         df = pd.read_csv('data/train_bin.csv')
         task1_train_data = parse_data(df)
 
@@ -16,6 +22,7 @@ class ResultValues:
 
         self.arbre = tree
 
+        print('***** Task 1 & 2 *****')
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('average height of the tree:', "{:.2f}".format(average_height(self.arbre)))
@@ -48,36 +55,51 @@ class ResultValues:
 
         dict_no_age = []
         for i in test_pred_dict:
-                dict_no_age.append({attribute : value for attribute, value in i.items() if attribute != 'age'})
+            dict_no_age.append({attribute: value for attribute, value in i.items() if attribute != 'age'})
 
         dict_no_sex = []
         for i in dict_no_age:
-                dict_no_sex.append({attribute : value for attribute, value in i.items() if attribute != 'sex'})
+            dict_no_sex.append({attribute: value for attribute, value in i.items() if attribute != 'sex'})
 
         #################
 
-        #converts test_pred_dict into a list of lists
+        # converts test_pred_dict into a list of lists
         test_pred_list = dict_to_list(dict_no_sex)
 
         neg_rules = rules_for_negative_class(self.regles)
 
-
-
-
-
-
-
         print(neg_rules)
-        #print(self.regles)
+        # print(self.regles)
         print()
         print()
         print(test_pred_list)
 
-
-
+        # print(tree_predict(self.arbre, task2_test_data))
 
         # Task 5
-        self.arbre_advance = None
+
+        # Training
+        df = pd.read_csv('data/train_continuous.csv')
+        task5_train_data = parse_data(df)
+
+        id3_cts = ID3Cts()
+        tree_advance = id3_cts.construit_arbre(task5_train_data)
+
+        self.arbre_advance = tree_advance
+
+        # Stats
+        print('\n***** Task 5 *****')
+
+        print('max height of the tree:', max_depth(self.arbre_advance))
+        print('min height of the tree:', min_depth(self.arbre_advance))
+        print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
+        print('average height of the tree:', average_height(self.arbre_advance))
+
+        # Testing
+        df = pd.read_csv('data/test_public_continuous.csv')
+        task5_test_data = parse_data(df)
+        task5_accuracy = test_stats(self.arbre_advance, task5_test_data)
+        print('accuracy is :', format(task5_accuracy, '.2%'))
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
@@ -148,6 +170,7 @@ def max_depth(t):
             children_depth.append(max_depth(children[e]))
         return max(children_depth) + 1
 
+
 def average_height(t):
     """ Find the average height of a decision tree
 
@@ -159,7 +182,7 @@ def average_height(t):
     for path in paths:
         lengths.append(len(path))
 
-    ah = sum(lengths)/len(paths)
+    ah = sum(lengths) / len(paths)
 
     return ah
 
@@ -173,7 +196,7 @@ def test_stats(tree, data):
     """
     success = 0
     for target, inp in data:
-        if tree.classifie(inp)[-1] == target:
+        if tree.classifie(inp).split()[-1] == target:
             success += 1
 
     return success / len(data)
@@ -196,6 +219,7 @@ def initial_facts(path):
 
     return data
 
+
 def get_paths(t):
     """ Get all the paths in a tree using DFS.
 
@@ -211,6 +235,7 @@ def get_paths(t):
         for path in res_p:
             paths.append([[t.attribut, value]] + path)
     return paths
+
 
 def explain_prediction(rules, datapoint):
     """ get prediction explanation for the datapoind based on the rules.
@@ -240,6 +265,7 @@ def tree_predict(t, data):
 
     return pred_heart_disease
 
+
 def dict_to_list(dictionaries):
     """ transforms a list of dictionaries to a list of lists
 
@@ -248,10 +274,9 @@ def dict_to_list(dictionaries):
     """
     new_list = []
     for d in dictionaries:
-        new_list.append([ [attribute,value] for attribute, value in d.items() ] )
+        new_list.append([[attribute, value] for attribute, value in d.items()])
 
     return new_list
-
 
 
 def rules_for_negative_class(rules):
@@ -271,6 +296,3 @@ def rules_for_negative_class(rules):
             neg_rules.append(rule)
 
     return neg_rules
-
-
-ResultValues()
