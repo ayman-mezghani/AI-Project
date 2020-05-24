@@ -29,6 +29,7 @@ class ResultValues:
         print('number of leaves in the tree:', get_leaf_count(tree))
 
         # Task 2
+
         df = pd.read_csv('data/test_public_bin.csv')
         task2_test_data = parse_data(df)
         task2_accuracy = test_stats(self.arbre, task2_test_data)
@@ -41,13 +42,21 @@ class ResultValues:
 
         # Task 4
 
-        print()
+        print('\n***** Task 4 *****')
 
+        positive_count = 0
+        saved_count = 0
         for case in task2_test_data:
-            print(explain_prediction(self.regles, [[x, y] for x, y in case[1].items()]))
+            # if the case tests positive
 
-        # print(suggest_treatement(negative_rules, case, 2))
+            if tree.classifie(case[1]).split()[-1] == '1':
+                positive_count += 1
+                explanation = explain_prediction(self.regles, [[x, y] for x, y in case[1].items()])
+                print(explanation)
+                if explanation.split()[-1] != '[]':
+                    saved_count += 1
 
+        print('saved', saved_count, 'out of', positive_count, 'positive cases.')
         # Task 5
 
         # Training
@@ -210,7 +219,7 @@ def get_paths(t):
     return paths
 
 
-def explain_prediction(rules, datapoint, c=2):
+def explain_prediction(rules, datapoint, c=2, saved=-1):
     """ get prediction explanation for the datapoind based on the rules.
 
         :param list rules: the list of rules
@@ -225,7 +234,8 @@ def explain_prediction(rules, datapoint, c=2):
                 neg_rules = rules_for_negative_class(rules)
                 treatment = suggest_treatement(neg_rules, datapoint, 2)
                 if len(treatment) > 0:
-                    res += '\nWe sugenst these changes: ' + str()
+                    saved += 1
+                    res += '\nWe sugenst these changes: ' + str(treatment)
                 else:
                     res += "\nWe don't have any treatments with cost less than " + str(c) + " to suggest."
             return res
