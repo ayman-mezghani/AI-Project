@@ -48,22 +48,22 @@ class NoeudDeDecisionCts:
         if self.terminal():
             rep += 'Alors {}'.format(self.classe().upper())
         else:
-            # print(donnee)
-            # print(self.attribut)
             valeur = donnee[self.attribut]
-            # print(valeur)
             children_keys = list(self.enfants)
-            # print(children_keys)
             if eval(str(valeur)+children_keys[0]):
                 key = children_keys[0]
             else:
                 key = children_keys[1]
+
             enfant = self.enfants[key]
-            rep += 'Si {} = {}, '.format(self.attribut, key.upper())
+
+            rep += 'Si {} {}, '.format(self.attribut, key.upper())
+
             try:
                 rep += enfant.classifie(donnee)
             except:
                 rep += self.p_class
+
         return rep
 
     def repr_arbre(self, level=0):

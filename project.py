@@ -100,6 +100,7 @@ class ResultValues:
         task5_test_data = parse_data(df)
         task5_accuracy = test_stats(self.arbre_advance, task5_test_data)
         print('accuracy is :', format(task5_accuracy, '.2%'))
+        print(self.arbre_advance.classifie(task5_train_data[0][1]))
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
