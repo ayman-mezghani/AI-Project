@@ -41,40 +41,12 @@ class ResultValues:
 
         # Task 4
 
-        # test_pred_dict is a list of dictionaries for the test data which has been classified as positive for heart disease
-        test_pred_dict = tree_predict(self.arbre, task2_test_data)
-
-        #############
-
-        ''' I'm going to find a way to make the following code better, i just needed to remove the attributes age and sex to continue with the next part '''
-
-        '''for dictionary in test_pred_dict:
-            keys_to_remove = ['age', 'sex']
-            for key in keys_to_remove:
-                new_pred_dict = dictionary.pop(key)'''
-
-        dict_no_age = []
-        for i in test_pred_dict:
-            dict_no_age.append({attribute: value for attribute, value in i.items() if attribute != 'age'})
-
-        dict_no_sex = []
-        for i in dict_no_age:
-            dict_no_sex.append({attribute: value for attribute, value in i.items() if attribute != 'sex'})
-
-        #################
-
-        # converts test_pred_dict into a list of lists
-        test_pred_list = dict_to_list(dict_no_sex)
-
-        neg_rules = rules_for_negative_class(self.regles)
-
-        print(neg_rules)
-        # print(self.regles)
         print()
-        print()
-        print(test_pred_list)
 
-        # print(tree_predict(self.arbre, task2_test_data))
+        for case in task2_test_data:
+            print(explain_prediction(self.regles, [[x, y] for x, y in case[1].items()]))
+
+        # print(suggest_treatement(negative_rules, case, 2))
 
         # Task 5
 
@@ -93,14 +65,14 @@ class ResultValues:
         print('max height of the tree:', max_depth(self.arbre_advance))
         print('min height of the tree:', min_depth(self.arbre_advance))
         print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
-        print('average height of the tree:', average_height(self.arbre_advance))
+        print('average height of the tree:', "{:.2f}".format(average_height(self.arbre_advance)))
 
         # Testing
         df = pd.read_csv('data/test_public_continuous.csv')
         task5_test_data = parse_data(df)
         task5_accuracy = test_stats(self.arbre_advance, task5_test_data)
-        print('accuracy is :', format(task5_accuracy, '.2%'))
-        print(self.arbre_advance.classifie(task5_train_data[0][1]))
+        print('accuracy is:', format(task5_accuracy, '.2%'))
+        # print(self.arbre_advance.classifie(task5_train_data[0][1]))
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
@@ -238,46 +210,26 @@ def get_paths(t):
     return paths
 
 
-def explain_prediction(rules, datapoint):
+def explain_prediction(rules, datapoint, c=2):
     """ get prediction explanation for the datapoind based on the rules.
 
         :param list rules: the list of rules
         :param list datapoint: the datapoint attributes
+        :param int c: max cost of treatmen to suggest
         :return: the explanation of the prediction
     """
     for rule in rules:
         if all(i in datapoint for i in rule[:-1]):
-            return print(rule[:-1], "=>", rule[-1])
-
-    return "No explanation found. Ask a real doctor"
-
-
-def tree_predict(t, data):
-    """ get prediction of a dataset using a decision tree, t
-
-        :param NoeudDeDecision t: the tree used to make prediction
-        :param list data: data in which to find the prediction
-        :return: returns the datapoints which were classified as '1'
-    """
-    pred_heart_disease = []
-    for target, inp in data:
-        if t.classifie(inp)[-1] == '1':
-            pred_heart_disease.append(inp)
-
-    return pred_heart_disease
-
-
-def dict_to_list(dictionaries):
-    """ transforms a list of dictionaries to a list of lists
-
-        :param dictionaries: a list of dictionaries
-        :return: a list of lists
-    """
-    new_list = []
-    for d in dictionaries:
-        new_list.append([[attribute, value] for attribute, value in d.items()])
-
-    return new_list
+            res = str(rule[:-1]) + " => " + rule[-1]
+            if rule[-1] == '1':
+                neg_rules = rules_for_negative_class(rules)
+                treatment = suggest_treatement(neg_rules, datapoint, 2)
+                if len(treatment) > 0:
+                    res += '\nWe sugenst these changes: ' + str()
+                else:
+                    res += "\nWe don't have any treatments with cost less than " + str(c) + " to suggest."
+            return res
+    return "No explanation found. Ask a real doctor!"
 
 
 def rules_for_negative_class(rules):
@@ -287,13 +239,25 @@ def rules_for_negative_class(rules):
         :param list rules: a list of rules for a decision tree
         :return: a reduced list of rules for a negative classification
     """
+    negative_rules = [x for x in rules if x[-1] == '0']
 
-    original_rules = rules
-    neg_rules = []
+    return negative_rules
 
-    for rule in original_rules:
-        if rule[-1] == '0':
-            rule.pop()
-            neg_rules.append(rule)
 
-    return neg_rules
+def suggest_treatement(rules, datapoint, c):
+    """ Suggests the treatment with a cost smaller or equal than c
+
+        :param list rules: the list of negative rules
+        :param list datapoint: the datapoint attributes
+        :param int c: maximum cost of the treatment
+        :return: a treatment costing less than c if there exists one
+    """
+    treatments = [[e for e in rule[:-1] if e not in datapoint] for rule in rules]
+
+    valid_treatments = [t for t in treatments if 'sex' not in str(t) and 'age' not in str(t)]
+
+    candidate = min(valid_treatments, key=len)
+    if len(candidate) <= c:
+        return candidate
+    else:
+        return []
