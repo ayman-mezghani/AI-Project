@@ -1,5 +1,7 @@
 from math import log
-from .noeud_de_decision_cts import NoeudDeDecision_cts
+from statistics import mean
+from .noeud_de_decision_cts import NoeudDeDecisionCts
+
 
 class ID3Cts:
     """ Algorithme ID3. 
@@ -8,7 +10,7 @@ class ID3Cts:
         Specifically, in construit_arbre_recur(), if donnees == [] (line 70), it returns a terminal node with the predominant class of the dataset -- as computed in construit_arbre() -- instead of returning None.
         Moreover, the predominant class is also passed as a parameter to NoeudDeDecision().
     """
-    
+
     def construit_arbre(self, donnees):
         """ Construit un arbre de décision à partir des données d'apprentissage.
 
@@ -17,18 +19,11 @@ class ID3Cts:
             :return: une instance de NoeudDeDecision correspondant à la racine de\
             l'arbre de décision.
         """
-        
+
         # Nous devons extraire les domaines de valeur des 
         # attributs, puisqu'ils sont nécessaires pour 
         # construire l'arbre.
-        attributs = {}
-        for donnee in donnees:
-            for attribut, valeur in donnee[1].items():
-                valeurs = attributs.get(attribut)
-                if valeurs is None:
-                    valeurs = set()
-                    attributs[attribut] = valeurs
-                valeurs.add(valeur)
+        attributs = self.get_attributes(donnees)
 
         # Find the predominant class
         classes = set([row[0] for row in donnees])
@@ -40,10 +35,26 @@ class ID3Cts:
                 predominant_class_counter = [row[0] for row in donnees].count(c)
                 predominant_class = c
         # print(predominant_class)
-            
+
         arbre = self.construit_arbre_recur(donnees, attributs, predominant_class)
 
         return arbre
+
+    def get_attributes(self, donnees):
+        """ Extracts the attributes and their possible values.
+
+            :param list donnees: data from which attributes are extracted.
+            :return: dictionary mapping each attribute to a list of its possible values.
+        """
+        attributs = {}
+        for donnee in donnees:
+            for attribut, valeur in donnee[1].items():
+                valeurs = attributs.get(attribut)
+                if valeurs is None:
+                    valeurs = set()
+                    attributs[attribut] = valeurs
+                valeurs.add(float(valeur))
+        return attributs
 
     def construit_arbre_recur(self, donnees, attributs, predominant_class):
         """ Construit rédurcivement un arbre de décision à partir 
@@ -57,153 +68,126 @@ class ID3Cts:
             :return: une instance de NoeudDeDecision correspondant à la racine de\
             l'arbre de décision.
         """
-        
+
         def classe_unique(donnees):
             """ Vérifie que toutes les données appartiennent à la même classe. """
-            
+
             if len(donnees) == 0:
-                return True 
+                return True
             premiere_classe = donnees[0][0]
             for donnee in donnees:
                 if donnee[0] != premiere_classe:
-                    return False 
+                    return False
             return True
 
         if donnees == []:
-            return NoeudDeDecision_cts(None, [str(predominant_class), dict()], str(predominant_class))
+            return NoeudDeDecisionCts(None, [str(predominant_class), dict()], str(predominant_class))
 
         # Si toutes les données restantes font partie de la même classe,
         # on peut retourner un noeud terminal.         
         elif classe_unique(donnees):
-            return NoeudDeDecision_cts(None, donnees, str(predominant_class))
-            
+            return NoeudDeDecisionCts(None, donnees, str(predominant_class))
+
         else:
             # Sélectionne l'attribut qui réduit au maximum l'entropie.
-            h_C_As_attribs = [(self.h_C_A(donnees, attribut, attributs[attribut]), 
-                               attribut) for attribut in attributs]
+            entropy_per_attribute = [(self.threshold_smallest_entropy(donnees, attribut, list(attributs[attribut])) +
+                                      [attribut]) for attribut in attributs if len(attributs[attribut]) > 1]
 
-            attribut = min(h_C_As_attribs, key=lambda h_a: h_a[0])[1]
+            threshold, entropy, attribut = min(entropy_per_attribute, key=lambda h_a: h_a[1])
 
             # Crée les sous-arbres de manière récursive.
-            attributs_restants = attributs.copy()
-            del attributs_restants[attribut]
+            partitions = self.partitionne(donnees, attribut, threshold)
 
-            partitions = self.partitionne(donnees, attribut, attributs[attribut])
-            
             enfants = {}
             for valeur, partition in partitions.items():
+                attributs_restants = self.get_attributes(partition)
                 enfants[valeur] = self.construit_arbre_recur(partition,
                                                              attributs_restants,
                                                              predominant_class)
 
-            return NoeudDeDecision_cts(attribut, donnees, str(predominant_class), enfants)
+            return NoeudDeDecisionCts(attribut, donnees, str(predominant_class), enfants)
 
-    def partitionne(self, donnees, attribut, valeurs):
+    def partitionne(self, donnees, attribut, threshold):
         """ Partitionne les données sur les valeurs a_j de l'attribut A.
 
             :param list donnees: les données à partitioner.
             :param attribut: l'attribut A de partitionnement.
-            :param list valeurs: les valeurs a_j de l'attribut A.
-            :return: un dictionnaire qui associe à chaque valeur a_j de\
-            l'attribut A une liste l_j contenant les données pour lesquelles A\
-            vaut a_j.
+            :param threshold: the threshold to split the data.
+            :return: un dictionnaire qui représente 2 subtrees ayant des valeurs de A\
+            plus grandes ou plus petites que threshold.
         """
-        partitions = {valeur: [] for valeur in valeurs}
-        
-        for donnee in donnees:
-            partition = partitions[donnee[1][attribut]]
-            partition.append(donnee)
-            
+
+        left, right = self.split_according_to_threshold(donnees, attribut, threshold)
+
+        partitions = {"<= " + str(threshold): left, "> " + str(threshold): right}
+
         return partitions
 
-    def p_aj(self, donnees, attribut, valeur):
-        """ p(a_j) - la probabilité que la valeur de l'attribut A soit a_j.
+    def threshold_smallest_entropy(self, donnees, attribut, attr_values):
+        """ Finds a threshold that minimises the entropy and the resulting entopy.
+
+            :param list donnees: data to partition
+            :param attribut: attribute to consider
+            :param list attr_values: possible values for the attribute
+            :return: the treshold to use and the resulting entropy as a list of two elements
+        """
+        sorted_vals = sorted(set(attr_values))
+        possible_thresholds = [mean(x) for x in zip(sorted_vals[1:], sorted_vals[:-1])]
+        possible_entropies = [self.entropy_A(donnees, attribut, threshold) for threshold in possible_thresholds]
+
+        return list(min(zip(possible_thresholds, possible_entropies), key=lambda pair: pair[1]))
+
+    def entropy_A(self, donnees, attribute, threshold):
+        """ The entropy resulting from splitting the data according to attribute at the specified threshold.
 
             :param list donnees: les données d'apprentissage.
-            :param attribut: l'attribut A.
-            :param valeur: la valeur a_j de l'attribut A.            
-            :return: p(a_j)
+            :param attribute: the attribute A.
+            :param threshold: the threshold used to split the data.
+            :return: entropy
         """
         # Nombre de données.
         nombre_donnees = len(donnees)
-        
+
         # Permet d'éviter les divisions par 0.
         if nombre_donnees == 0:
             return 0.0
-        
-        # Nombre d'occurrences de la valeur a_j parmi les données.
-        nombre_aj = 0
-        for donnee in donnees:
-            if donnee[1][attribut] == valeur:
-                nombre_aj += 1
 
-        # p(a_j) = nombre d'occurrences de la valeur a_j parmi les données / 
-        #          nombre de données.
-        return nombre_aj / nombre_donnees
+        # Split data into two lists acording to threshold and attribute
+        left, right = self.split_according_to_threshold(donnees, attribute, threshold)
 
-    def p_ci_aj(self, donnees, attribut, valeur, classe):
-        """ p(c_i|a_j) - la probabilité conditionnelle que la classe C soit c_i\
-            étant donné que l'attribut A vaut a_j.
+        entropy = (len(left) * self.entropy(left) + len(right) * self.entropy(right)) / nombre_donnees
+        return entropy
 
-            :param list donnees: les données d'apprentissage.
-            :param attribut: l'attribut A.
-            :param valeur: la valeur a_j de l'attribut A.
-            :param classe: la valeur c_i de la classe C.
-            :return: p(c_i | a_j)
+    def split_according_to_threshold(self, data, attribute, threshold):
+        """ Splits data into two lists according to an attribute threshold.
+
+            :param list data: list of data points.
+            :param attribute: the attribute used in the split.
+            :param int threshold: the threshold to split.
+            :return: two lists for smaller/larger than the threshold.
         """
-        # Nombre d'occurrences de la valeur a_j parmi les données.
-        donnees_aj = [donnee for donnee in donnees if donnee[1][attribut] == valeur]
-        nombre_aj = len(donnees_aj)
-        
-        # Permet d'éviter les divisions par 0.
-        if nombre_aj == 0:
+        left = list()
+        right = list()
+        for donnee in data:
+            if float(donnee[1][attribute]) <= threshold:
+                left.append(donnee)
+            else:
+                right.append(donnee)
+
+        return left, right
+
+    def entropy(self, data):
+        """ Computes the Shannon entropy of the data according to the classes.
+
+            :param list data: list of data. First element of each datum is the class.
+            :return: entropy
+        """
+        class_0 = [x for x in data if float(x[0]) == 0]
+
+        p0 = len(class_0) / len(data)
+        p1 = 1 - p0
+
+        if p0 * p1 == 0:
             return 0
-        
-        # Nombre d'occurrences de la classe c_i parmi les données pour lesquelles 
-        # A vaut a_j.
-        donnees_ci = [donnee for donnee in donnees_aj if donnee[0] == classe]
-        nombre_ci = len(donnees_ci)
 
-        # p(c_i|a_j) = nombre d'occurrences de la classe c_i parmi les données 
-        #              pour lesquelles A vaut a_j /
-        #              nombre d'occurrences de la valeur a_j parmi les données.
-        return nombre_ci / nombre_aj
-
-    def h_C_aj(self, donnees, attribut, valeur):
-        """ H(C|a_j) - l'entropie de la classe parmi les données pour lesquelles\
-            l'attribut A vaut a_j.
-
-            :param list donnees: les données d'apprentissage.
-            :param attribut: l'attribut A.
-            :param valeur: la valeur a_j de l'attribut A.
-            :return: H(C|a_j)
-        """
-        # Les classes attestées dans les exemples.
-        classes = list(set([donnee[0] for donnee in donnees]))
-        
-        # Calcule p(c_i|a_j) pour chaque classe c_i.
-        p_ci_ajs = [self.p_ci_aj(donnees, attribut, valeur, classe) 
-                    for classe in classes]
-
-        # Si p vaut 0 -> plog(p) vaut 0.
-        return -sum([p_ci_aj * log(p_ci_aj, 2.0) 
-                    for p_ci_aj in p_ci_ajs 
-                    if p_ci_aj != 0])
-
-    def h_C_A(self, donnees, attribut, valeurs):
-        """ H(C|A) - l'entropie de la classe après avoir choisi de partitionner\
-            les données suivant les valeurs de l'attribut A.
-            
-            :param list donnees: les données d'apprentissage.
-            :param attribut: l'attribut A.
-            :param list valeurs: les valeurs a_j de l'attribut A.
-            :return: H(C|A)
-        """
-        # Calcule P(a_j) pour chaque valeur a_j de l'attribut A.
-        p_ajs = [self.p_aj(donnees, attribut, valeur) for valeur in valeurs]
-
-        # Calcule H_C_aj pour chaque valeur a_j de l'attribut A.
-        h_c_ajs = [self.h_C_aj(donnees, attribut, valeur) 
-                   for valeur in valeurs]
-
-        return sum([p_aj * h_c_aj for p_aj, h_c_aj in zip(p_ajs, h_c_ajs)])
+        return -(p0 * log(p0) + p1 * log(p1))

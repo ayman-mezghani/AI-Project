@@ -22,6 +22,7 @@ class ResultValues:
 
         self.arbre = tree
 
+        print('***** Task 1 & 2 *****')
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('number of leaves in the tree:', get_leaf_count(tree))
@@ -49,7 +50,7 @@ class ResultValues:
 
             return pred_heart_disease
 
-        print(tree_predict(self.arbre, task2_test_data))
+        # print(tree_predict(self.arbre, task2_test_data))
 
         # Task 5
 
@@ -63,6 +64,8 @@ class ResultValues:
         self.arbre_advance = tree_advance
 
         # Stats
+        print('\n***** Task 5 *****')
+
         print('max height of the tree:', max_depth(self.arbre_advance))
         print('min height of the tree:', min_depth(self.arbre_advance))
         print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
@@ -167,10 +170,9 @@ def test_stats(tree, data):
         :param list data: test data
         :return: accuracy of the classifications
     """
-    print(data)
     success = 0
     for target, inp in data:
-        if tree.classifie(inp)[-1] == target:
+        if tree.classifie(inp).split()[-1] == target:
             success += 1
 
     return success / len(data)

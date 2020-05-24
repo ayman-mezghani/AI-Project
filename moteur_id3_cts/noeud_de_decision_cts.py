@@ -1,6 +1,4 @@
-from moteur_id3.noeud_de_decision import NoeudDeDecision
-
-class NoeudDeDecisionCts(NoeudDeDecision):
+class NoeudDeDecisionCts:
     """ Un noeud dans un arbre de décision. 
     
         This is an updated version from the one in the book (Intelligence Artificielle par la pratique).
@@ -18,6 +16,7 @@ class NoeudDeDecisionCts(NoeudDeDecision):
             noeud est terminal).
         """
 
+        # super().__init__(attribut, donnees, p_class, enfants)
         self.attribut = attribut
         self.donnees = donnees
         self.enfants = enfants
@@ -49,9 +48,18 @@ class NoeudDeDecisionCts(NoeudDeDecision):
         if self.terminal():
             rep += 'Alors {}'.format(self.classe().upper())
         else:
+            # print(donnee)
+            # print(self.attribut)
             valeur = donnee[self.attribut]
-            enfant = self.enfants[valeur]
-            rep += 'Si {} = {}, '.format(self.attribut, valeur.upper())
+            # print(valeur)
+            children_keys = list(self.enfants)
+            # print(children_keys)
+            if eval(str(valeur)+children_keys[0]):
+                key = children_keys[0]
+            else:
+                key = children_keys[1]
+            enfant = self.enfants[key]
+            rep += 'Si {} = {}, '.format(self.attribut, key.upper())
             try:
                 rep += enfant.classifie(donnee)
             except:
@@ -65,19 +73,19 @@ class NoeudDeDecisionCts(NoeudDeDecision):
 
         rep = ''
         if self.terminal():
-            rep += '---'*level
+            rep += '---' * level
             rep += 'Alors {}\n'.format(self.classe().upper())
-            rep += '---'*level
+            rep += '---' * level
             rep += 'Décision basée sur les données:\n'
             for donnee in self.donnees:
-                rep += '---'*level
-                rep += str(donnee) + '\n' 
+                rep += '---' * level
+                rep += str(donnee) + '\n'
 
         else:
             for valeur, enfant in self.enfants.items():
-                rep += '---'*level
+                rep += '---' * level
                 rep += 'Si {} = {}: \n'.format(self.attribut, valeur.upper())
-                rep += enfant.repr_arbre(level+1)
+                rep += enfant.repr_arbre(level + 1)
 
         return rep
 
