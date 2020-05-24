@@ -1,7 +1,6 @@
 from moteur_id3.id3 import ID3, NoeudDeDecision
 from csv import DictReader
 import pandas as pd
-import numpy as np
 
 
 class ResultValues:
@@ -19,8 +18,8 @@ class ResultValues:
 
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
+        print('average height of the tree:', "{:.2f}".format(average_height(self.arbre)))
         print('number of leaves in the tree:', get_leaf_count(tree))
-        print('average height of the tree:', average_height(self.arbre))
 
         # Task 2
         df = pd.read_csv('data/test_public_bin.csv')
@@ -35,16 +34,47 @@ class ResultValues:
 
         # Task 4
 
-        def tree_predict(t, data):
+        # test_pred_dict is a list of dictionaries for the test data which has been classified as positive for heart disease
+        test_pred_dict = tree_predict(self.arbre, task2_test_data)
 
-            pred_heart_disease = []
-            for target, inp in data:
-                if t.classifie(inp)[-1] == '1':
-                    pred_heart_disease.append(inp)
+        #############
 
-            return pred_heart_disease
+        ''' I'm going to find a way to make the following code better, i just needed to remove the attributes age and sex to continue with the next part '''
 
-        print(tree_predict(self.arbre, task2_test_data))
+        '''for dictionary in test_pred_dict:
+            keys_to_remove = ['age', 'sex']
+            for key in keys_to_remove:
+                new_pred_dict = dictionary.pop(key)'''
+
+        dict_no_age = []
+        for i in test_pred_dict:
+                dict_no_age.append({attribute : value for attribute, value in i.items() if attribute != 'age'})
+
+        dict_no_sex = []
+        for i in dict_no_age:
+                dict_no_sex.append({attribute : value for attribute, value in i.items() if attribute != 'sex'})
+
+        #################
+
+        #converts test_pred_dict into a list of lists
+        test_pred_list = dict_to_list(dict_no_sex)
+
+        neg_rules = rules_for_negative_class(self.regles)
+
+
+
+
+
+
+
+        print(neg_rules)
+        #print(self.regles)
+        print()
+        print()
+        print(test_pred_list)
+
+
+
 
         # Task 5
         self.arbre_advance = None
@@ -141,7 +171,6 @@ def test_stats(tree, data):
         :param list data: test data
         :return: accuracy of the classifications
     """
-    print(data)
     success = 0
     for target, inp in data:
         if tree.classifie(inp)[-1] == target:
@@ -195,3 +224,53 @@ def explain_prediction(rules, datapoint):
             return print(rule[:-1], "=>", rule[-1])
 
     return "No explanation found. Ask a real doctor"
+
+
+def tree_predict(t, data):
+    """ get prediction of a dataset using a decision tree, t
+
+        :param NoeudDeDecision t: the tree used to make prediction
+        :param list data: data in which to find the prediction
+        :return: returns the datapoints which were classified as '1'
+    """
+    pred_heart_disease = []
+    for target, inp in data:
+        if t.classifie(inp)[-1] == '1':
+            pred_heart_disease.append(inp)
+
+    return pred_heart_disease
+
+def dict_to_list(dictionaries):
+    """ transforms a list of dictionaries to a list of lists
+
+        :param dictionaries: a list of dictionaries
+        :return: a list of lists
+    """
+    new_list = []
+    for d in dictionaries:
+        new_list.append([ [attribute,value] for attribute, value in d.items() ] )
+
+    return new_list
+
+
+
+def rules_for_negative_class(rules):
+    """ reduces original list of rules of a decision tree to a list containing 
+        only the rules which lead to a negative classification
+
+        :param list rules: a list of rules for a decision tree
+        :return: a reduced list of rules for a negative classification
+    """
+
+    original_rules = rules
+    neg_rules = []
+
+    for rule in original_rules:
+        if rule[-1] == '0':
+            rule.pop()
+            neg_rules.append(rule)
+
+    return neg_rules
+
+
+ResultValues()
