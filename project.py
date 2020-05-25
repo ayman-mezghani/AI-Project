@@ -13,6 +13,7 @@ class ResultValues:
         # Do computations here
 
         # Task 1
+        print('***** Task 1 & 2 *****')
 
         df = pd.read_csv('data/train_bin.csv')
         task1_train_data = parse_data(df)
@@ -22,7 +23,6 @@ class ResultValues:
 
         self.arbre = tree
 
-        print('***** Task 1 & 2 *****')
         print('max height of the tree:', max_depth(tree))
         print('min height of the tree:', min_depth(tree))
         print('average height of the tree:', "{:.2f}".format(average_height(self.arbre)))
@@ -34,7 +34,6 @@ class ResultValues:
         task2_test_data = parse_data(df)
         task2_accuracy = test_stats(self.arbre, task2_test_data)
         print('accuracy is :', format(task2_accuracy, '.2%'))
-
 
         # Task 3
 
@@ -53,14 +52,17 @@ class ResultValues:
             if tree.classifie(case[1]).split()[-1] == '1':
                 positive_count += 1
                 explanation = explain_prediction(self.regles, [[x, y] for x, y in case[1].items()])
-                print(explanation)
+                # print(explanation)
                 if explanation.split()[-1] != '[]':
                     saved_count += 1
 
         print('saved', saved_count, 'out of', positive_count, 'positive cases.')
+
         # Task 5
 
         # Training
+        print('\n***** Task 5 *****')
+
         df = pd.read_csv('data/train_continuous.csv')
         task5_train_data = parse_data(df)
 
@@ -70,13 +72,11 @@ class ResultValues:
         self.arbre_advance = tree_advance
 
         # Stats
-        print('\n***** Task 5 *****')
 
         print('max height of the tree:', max_depth(self.arbre_advance))
         print('min height of the tree:', min_depth(self.arbre_advance))
         print('average height of the tree:', "{:.2f}".format(average_height(self.arbre_advance)))
         print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
-        
 
         # Testing
         df = pd.read_csv('data/test_public_continuous.csv')
@@ -84,9 +84,6 @@ class ResultValues:
         task5_accuracy = test_stats(self.arbre_advance, task5_test_data)
         print('accuracy is:', format(task5_accuracy, '.2%'))
         # print(self.arbre_advance.classifie(task5_train_data[0][1]))
-
-        
-
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
@@ -108,6 +105,22 @@ def parse_data(dataframe):
         entry = [str(row[headers[-1]]), class_attr]
         res.append(entry)
     return res
+
+
+def max_depth(t):
+    """ Parse dataframe into desired format.
+
+        :param NoeudDeDecision t: the tree to analyze
+        :return: max height of the tree
+    """
+    if t.terminal():
+        return 0
+    else:
+        children = t.enfants
+        children_depth = []
+        for e in children:
+            children_depth.append(max_depth(children[e]))
+        return max(children_depth) + 1
 
 
 def min_depth(t):
@@ -140,22 +153,6 @@ def get_leaf_count(t):
         for e in children:
             children_leaves.append(get_leaf_count(children[e]))
         return sum(children_leaves)
-
-
-def max_depth(t):
-    """ Parse dataframe into desired format.
-
-        :param NoeudDeDecision t: the tree to analyze
-        :return: max height of the tree
-    """
-    if t.terminal():
-        return 0
-    else:
-        children = t.enfants
-        children_depth = []
-        for e in children:
-            children_depth.append(max_depth(children[e]))
-        return max(children_depth) + 1
 
 
 def average_height(t):
@@ -224,12 +221,13 @@ def get_paths(t):
     return paths
 
 
-def explain_prediction(rules, datapoint, c=2, saved=-1):
+def explain_prediction(rules, datapoint, c=2):
     """ get prediction explanation for the datapoind based on the rules.
 
         :param list rules: the list of rules
         :param list datapoint: the datapoint attributes
         :param int c: max cost of treatmen to suggest
+        :param
         :return: the explanation of the prediction
     """
     for rule in rules:
@@ -239,7 +237,6 @@ def explain_prediction(rules, datapoint, c=2, saved=-1):
                 neg_rules = rules_for_negative_class(rules)
                 treatment = suggest_treatement(neg_rules, datapoint, 2)
                 if len(treatment) > 0:
-                    saved += 1
                     res += '\nWe sugenst these changes: ' + str(treatment)
                 else:
                     res += "\nWe don't have any treatments with cost less than " + str(c) + " to suggest."
