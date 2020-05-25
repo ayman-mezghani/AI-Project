@@ -85,7 +85,7 @@ class ResultValues:
         print('accuracy is:', format(task5_accuracy, '.2%'))
         # print(self.arbre_advance.classifie(task5_train_data[0][1]))
 
-
+        
 
 
     def get_results(self):
