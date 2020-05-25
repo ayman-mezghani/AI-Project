@@ -35,6 +35,7 @@ class ResultValues:
         task2_accuracy = test_stats(self.arbre, task2_test_data)
         print('accuracy is :', format(task2_accuracy, '.2%'))
 
+
         # Task 3
 
         self.faits_initiaux = initial_facts('data/train_bin.csv')
@@ -73,8 +74,9 @@ class ResultValues:
 
         print('max height of the tree:', max_depth(self.arbre_advance))
         print('min height of the tree:', min_depth(self.arbre_advance))
-        print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
         print('average height of the tree:', "{:.2f}".format(average_height(self.arbre_advance)))
+        print('number of leaves in the tree:', get_leaf_count(self.arbre_advance))
+        
 
         # Testing
         df = pd.read_csv('data/test_public_continuous.csv')
@@ -82,6 +84,9 @@ class ResultValues:
         task5_accuracy = test_stats(self.arbre_advance, task5_test_data)
         print('accuracy is:', format(task5_accuracy, '.2%'))
         # print(self.arbre_advance.classifie(task5_train_data[0][1]))
+
+        
+
 
     def get_results(self):
         return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
