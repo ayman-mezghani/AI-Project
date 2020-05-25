@@ -52,7 +52,7 @@ class ResultValues:
             if tree.classifie(case[1]).split()[-1] == '1':
                 positive_count += 1
                 explanation = explain_prediction(self.regles, [[x, y] for x, y in case[1].items()])
-                print(explanation)
+                # print(explanation)
                 if explanation.split()[-1] != '[]':
                     saved_count += 1
 
@@ -105,6 +105,22 @@ def parse_data(dataframe):
     return res
 
 
+def max_depth(t):
+    """ Parse dataframe into desired format.
+
+        :param NoeudDeDecision t: the tree to analyze
+        :return: max height of the tree
+    """
+    if t.terminal():
+        return 0
+    else:
+        children = t.enfants
+        children_depth = []
+        for e in children:
+            children_depth.append(max_depth(children[e]))
+        return max(children_depth) + 1
+
+
 def min_depth(t):
     """ Parse dataframe into desired format.
 
@@ -135,22 +151,6 @@ def get_leaf_count(t):
         for e in children:
             children_leaves.append(get_leaf_count(children[e]))
         return sum(children_leaves)
-
-
-def max_depth(t):
-    """ Parse dataframe into desired format.
-
-        :param NoeudDeDecision t: the tree to analyze
-        :return: max height of the tree
-    """
-    if t.terminal():
-        return 0
-    else:
-        children = t.enfants
-        children_depth = []
-        for e in children:
-            children_depth.append(max_depth(children[e]))
-        return max(children_depth) + 1
 
 
 def average_height(t):
@@ -219,12 +219,13 @@ def get_paths(t):
     return paths
 
 
-def explain_prediction(rules, datapoint, c=2, saved=-1):
+def explain_prediction(rules, datapoint, c=2):
     """ get prediction explanation for the datapoind based on the rules.
 
         :param list rules: the list of rules
         :param list datapoint: the datapoint attributes
         :param int c: max cost of treatmen to suggest
+        :param
         :return: the explanation of the prediction
     """
     for rule in rules:
@@ -234,7 +235,6 @@ def explain_prediction(rules, datapoint, c=2, saved=-1):
                 neg_rules = rules_for_negative_class(rules)
                 treatment = suggest_treatement(neg_rules, datapoint, 2)
                 if len(treatment) > 0:
-                    saved += 1
                     res += '\nWe sugenst these changes: ' + str(treatment)
                 else:
                     res += "\nWe don't have any treatments with cost less than " + str(c) + " to suggest."
