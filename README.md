@@ -1,3 +1,3 @@
-# AI-Project
+# CS-330 - Artificial Intelligence Project
 
-hello, it's me !
+ID3 algorithm implementation.
